@@ -118,11 +118,13 @@ class App(tk.Tk):
         self.freq_left = tk.IntVar(value=440)
         self.slider_left = ttk.Scale(left_frame, from_=2000, to=100, variable=self.freq_left, orient="vertical", command=self.update_left)
         self.slider_left.pack(expand=True, fill="y")
-        self.entry_left = ttk.Entry(left_frame, width=6, justify="center")
+        vcmd = (self.register(self.validate_numeric), "%P")
+        self.entry_left = ttk.Entry(left_frame, width=6, justify="center", validate="key", validatecommand=vcmd)
         self.entry_left.insert(0, "440")
         self.entry_left.pack(pady=(8, 4))
         self.entry_left.bind("<Return>", self.set_left_from_entry)
         self.entry_left.bind("<FocusOut>", self.set_left_from_entry)
+        self.entry_left.bind("<FocusIn>", lambda e: self.select_all(self.entry_left))  # <--- hinzufügen
         self.entry_left.configure(style="Borderless.TEntry")
         self.mute_left = tk.BooleanVar(value=False)
         self.btn_mute_left = ttk.Button(
@@ -139,11 +141,13 @@ class App(tk.Tk):
         self.phase_diff = tk.IntVar(value=0)
         self.slider_phase = ttk.Scale(phase_frame, from_=360, to=0, variable=self.phase_diff, orient="vertical", command=self.update_phase)
         self.slider_phase.pack(expand=True, fill="y")
-        self.entry_phase = ttk.Entry(phase_frame, width=6, justify="center")
+        vcmd = (self.register(self.validate_numeric), "%P")
+        self.entry_phase = ttk.Entry(phase_frame, width=6, justify="center", validate="key", validatecommand=vcmd)
         self.entry_phase.insert(0, "0")
         self.entry_phase.pack(pady=(8, 4))
         self.entry_phase.bind("<Return>", self.set_phase_from_entry)
         self.entry_phase.bind("<FocusOut>", self.set_phase_from_entry)
+        self.entry_phase.bind("<FocusIn>", lambda e: self.select_all(self.entry_phase))  # <--- hinzufügen
         self.entry_phase.configure(style="Borderless.TEntry")
 
         right_frame = ttk.Frame(faders_frame)
@@ -152,11 +156,13 @@ class App(tk.Tk):
         self.freq_right = tk.IntVar(value=440)
         self.slider_right = ttk.Scale(right_frame, from_=2000, to=100, variable=self.freq_right, orient="vertical", command=self.update_right)
         self.slider_right.pack(expand=True, fill="y")
-        self.entry_right = ttk.Entry(right_frame, width=6, justify="center")
+        vcmd = (self.register(self.validate_numeric), "%P")
+        self.entry_right = ttk.Entry(right_frame, width=6, justify="center", validate="key", validatecommand=vcmd)
         self.entry_right.insert(0, "440")
         self.entry_right.pack(pady=(8, 4))
         self.entry_right.bind("<Return>", self.set_right_from_entry)
         self.entry_right.bind("<FocusOut>", self.set_right_from_entry)
+        self.entry_right.bind("<FocusIn>", lambda e: self.select_all(self.entry_right))  # <--- hinzufügen
         self.entry_right.configure(style="Borderless.TEntry")
         self.mute_right = tk.BooleanVar(value=False)
         self.btn_mute_right = ttk.Button(
@@ -245,6 +251,13 @@ class App(tk.Tk):
     def on_close(self):
         self.stop()
         self.destroy()
+
+    def select_all(self, entry):
+        entry.after(1, lambda: entry.select_range(0, tk.END))
+        entry.after(1, lambda: entry.icursor(tk.END))
+
+    def validate_numeric(self, value):
+        return value == "" or value.isdigit()
 
 if __name__ == "__main__":
     app = App()
