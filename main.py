@@ -196,6 +196,7 @@ class App(tk.Tk):
             self.update_left()
         except ValueError:
             pass
+        self.select_all(self.entry_left)  # Reselect text
 
     def update_right(self, event=None):
         freq = self.freq_right.get()
@@ -211,6 +212,7 @@ class App(tk.Tk):
             self.update_right()
         except ValueError:
             pass
+        self.select_all(self.entry_right)  # Reselect text
 
     def update_phase(self, event=None):
         diff = self.phase_diff.get()
@@ -226,6 +228,7 @@ class App(tk.Tk):
             self.update_phase()
         except ValueError:
             pass
+        self.select_all(self.entry_phase)  # Reselect text
 
     def start(self):
         self.generator.set_freq_left(self.freq_left.get())
