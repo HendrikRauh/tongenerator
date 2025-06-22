@@ -69,10 +69,7 @@ class ToneGenerator:
             mute_left = self.mute_left
             mute_right = self.mute_right
 
-        # Phasen in Radiant
         phase_offset = 2 * np.pi * phase_diff / 360
-
-        # Fortlaufende Phase berechnen
         left = np.sin(2 * np.pi * freq_left * t + self.phase_left)
         right = np.sin(2 * np.pi * freq_right * t + self.phase_right + phase_offset)
 
@@ -84,7 +81,6 @@ class ToneGenerator:
         outdata[:, 0] = left.astype(np.float32)
         outdata[:, 1] = right.astype(np.float32)
 
-        # Phasen für nächsten Callback merken
         self.phase_left += 2 * np.pi * freq_left * frames / SAMPLE_RATE
         self.phase_left = self.phase_left % (2 * np.pi)
         self.phase_right += 2 * np.pi * freq_right * frames / SAMPLE_RATE
@@ -96,7 +92,6 @@ class App(tk.Tk):
         self.title("Interferenz-Experiment")
         self.resizable(True, True)
 
-        # --- DARK MODE STYLING ---
         self.configure(bg="#232629")
         style = ttk.Style(self)
         style.theme_use("clam")
@@ -107,26 +102,28 @@ class App(tk.Tk):
         style.configure("Horizontal.TScale", background="#232629")
         style.configure("Vertical.TScale", background="#232629")
         style.map("TButton", background=[("active", "#6272a4")])
+        style.configure("Borderless.TEntry", relief="flat", borderwidth=0, font=("Segoe UI", 12), foreground="#f8f8f2", fieldbackground="#232629", background="#232629")
 
         self.generator = ToneGenerator()
 
-        # --- MAIN LAYOUT FRAME ---
         main_frame = ttk.Frame(self, style="TFrame")
         main_frame.pack(expand=True, fill="both", padx=20, pady=20)
 
-        # --- FADERS FRAME ---
         faders_frame = ttk.Frame(main_frame)
         faders_frame.pack(side="top", fill="both", expand=True)
 
-        # --- LEFT FADER ---
         left_frame = ttk.Frame(faders_frame)
         left_frame.pack(side="left", expand=True, fill="both", padx=10)
         ttk.Label(left_frame, text="Links (Hz)").pack(pady=(0, 8))
         self.freq_left = tk.IntVar(value=440)
         self.slider_left = ttk.Scale(left_frame, from_=2000, to=100, variable=self.freq_left, orient="vertical", command=self.update_left)
         self.slider_left.pack(expand=True, fill="y")
-        self.label_left = ttk.Label(left_frame, text="440 Hz")
-        self.label_left.pack(pady=(8, 4))
+        self.entry_left = ttk.Entry(left_frame, width=6, justify="center")
+        self.entry_left.insert(0, "440")
+        self.entry_left.pack(pady=(8, 4))
+        self.entry_left.bind("<Return>", self.set_left_from_entry)
+        self.entry_left.bind("<FocusOut>", self.set_left_from_entry)
+        self.entry_left.configure(style="Borderless.TEntry")
         self.mute_left = tk.BooleanVar(value=False)
         self.btn_mute_left = ttk.Button(
             left_frame,
@@ -136,25 +133,31 @@ class App(tk.Tk):
         )
         self.btn_mute_left.pack(pady=(8, 0))
 
-        # --- PHASE FADER ---
         phase_frame = ttk.Frame(faders_frame)
         phase_frame.pack(side="left", expand=True, fill="both", padx=10)
         ttk.Label(phase_frame, text="Phase (°)").pack(pady=(0, 8))
         self.phase_diff = tk.IntVar(value=0)
         self.slider_phase = ttk.Scale(phase_frame, from_=360, to=0, variable=self.phase_diff, orient="vertical", command=self.update_phase)
         self.slider_phase.pack(expand=True, fill="y")
-        self.label_phase = ttk.Label(phase_frame, text="0°")
-        self.label_phase.pack(pady=(8, 4))
+        self.entry_phase = ttk.Entry(phase_frame, width=6, justify="center")
+        self.entry_phase.insert(0, "0")
+        self.entry_phase.pack(pady=(8, 4))
+        self.entry_phase.bind("<Return>", self.set_phase_from_entry)
+        self.entry_phase.bind("<FocusOut>", self.set_phase_from_entry)
+        self.entry_phase.configure(style="Borderless.TEntry")
 
-        # --- RIGHT FADER ---
         right_frame = ttk.Frame(faders_frame)
         right_frame.pack(side="left", expand=True, fill="both", padx=10)
         ttk.Label(right_frame, text="Rechts (Hz)").pack(pady=(0, 8))
         self.freq_right = tk.IntVar(value=440)
         self.slider_right = ttk.Scale(right_frame, from_=2000, to=100, variable=self.freq_right, orient="vertical", command=self.update_right)
         self.slider_right.pack(expand=True, fill="y")
-        self.label_right = ttk.Label(right_frame, text="440 Hz")
-        self.label_right.pack(pady=(8, 4))
+        self.entry_right = ttk.Entry(right_frame, width=6, justify="center")
+        self.entry_right.insert(0, "440")
+        self.entry_right.pack(pady=(8, 4))
+        self.entry_right.bind("<Return>", self.set_right_from_entry)
+        self.entry_right.bind("<FocusOut>", self.set_right_from_entry)
+        self.entry_right.configure(style="Borderless.TEntry")
         self.mute_right = tk.BooleanVar(value=False)
         self.btn_mute_right = ttk.Button(
             right_frame,
@@ -164,7 +167,6 @@ class App(tk.Tk):
         )
         self.btn_mute_right.pack(pady=(8, 0))
 
-        # --- BUTTONS FRAME ---
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(side="bottom", fill="x", pady=(20, 0))
         self.btn_start = ttk.Button(button_frame, text="Start", command=self.start)
@@ -176,18 +178,48 @@ class App(tk.Tk):
 
     def update_left(self, event=None):
         freq = self.freq_left.get()
-        self.label_left.config(text=f"{int(freq)} Hz")
+        self.entry_left.delete(0, tk.END)
+        self.entry_left.insert(0, str(int(freq)))
         self.generator.set_freq_left(freq)
+
+    def set_left_from_entry(self, event=None):
+        try:
+            freq = int(self.entry_left.get())
+            freq = max(100, min(2000, freq))
+            self.freq_left.set(freq)
+            self.update_left()
+        except ValueError:
+            pass
 
     def update_right(self, event=None):
         freq = self.freq_right.get()
-        self.label_right.config(text=f"{int(freq)} Hz")
+        self.entry_right.delete(0, tk.END)
+        self.entry_right.insert(0, str(int(freq)))
         self.generator.set_freq_right(freq)
+
+    def set_right_from_entry(self, event=None):
+        try:
+            freq = int(self.entry_right.get())
+            freq = max(100, min(2000, freq))
+            self.freq_right.set(freq)
+            self.update_right()
+        except ValueError:
+            pass
 
     def update_phase(self, event=None):
         diff = self.phase_diff.get()
-        self.label_phase.config(text=f"{int(diff)}°")
+        self.entry_phase.delete(0, tk.END)
+        self.entry_phase.insert(0, str(int(diff)))
         self.generator.set_phase_diff(diff)
+
+    def set_phase_from_entry(self, event=None):
+        try:
+            diff = int(self.entry_phase.get())
+            diff = max(0, min(360, diff))
+            self.phase_diff.set(diff)
+            self.update_phase()
+        except ValueError:
+            pass
 
     def start(self):
         self.generator.set_freq_left(self.freq_left.get())
