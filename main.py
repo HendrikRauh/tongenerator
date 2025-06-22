@@ -94,8 +94,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Interferenz-Experiment")
-        self.geometry("520x380")
-        self.resizable(False, False)
+        self.resizable(True, True)
 
         # --- DARK MODE STYLING ---
         self.configure(bg="#232629")
@@ -117,19 +116,17 @@ class App(tk.Tk):
 
         # --- FADERS FRAME ---
         faders_frame = ttk.Frame(main_frame)
-        faders_frame.pack(side="top", fill="x", expand=True)
+        faders_frame.pack(side="top", fill="both", expand=True)
 
         # --- LEFT FADER ---
         left_frame = ttk.Frame(faders_frame)
-        left_frame.pack(side="left", expand=True, fill="y", padx=10)
+        left_frame.pack(side="left", expand=True, fill="both", padx=10)
         ttk.Label(left_frame, text="Links (Hz)").pack(pady=(0, 8))
         self.freq_left = tk.IntVar(value=440)
-        self.slider_left = ttk.Scale(left_frame, from_=2000, to=100, variable=self.freq_left, orient="vertical", command=self.update_left, length=180)
-        self.slider_left.pack()
+        self.slider_left = ttk.Scale(left_frame, from_=2000, to=100, variable=self.freq_left, orient="vertical", command=self.update_left)
+        self.slider_left.pack(expand=True, fill="y")
         self.label_left = ttk.Label(left_frame, text="440 Hz")
         self.label_left.pack(pady=(8, 4))
-
-        # Mute button with icon
         self.mute_left = tk.BooleanVar(value=False)
         self.btn_mute_left = ttk.Button(
             left_frame,
@@ -141,25 +138,23 @@ class App(tk.Tk):
 
         # --- PHASE FADER ---
         phase_frame = ttk.Frame(faders_frame)
-        phase_frame.pack(side="left", expand=True, fill="y", padx=10)
+        phase_frame.pack(side="left", expand=True, fill="both", padx=10)
         ttk.Label(phase_frame, text="Phase (°)").pack(pady=(0, 8))
         self.phase_diff = tk.IntVar(value=0)
-        self.slider_phase = ttk.Scale(phase_frame, from_=360, to=0, variable=self.phase_diff, orient="vertical", command=self.update_phase, length=180)
-        self.slider_phase.pack()
+        self.slider_phase = ttk.Scale(phase_frame, from_=360, to=0, variable=self.phase_diff, orient="vertical", command=self.update_phase)
+        self.slider_phase.pack(expand=True, fill="y")
         self.label_phase = ttk.Label(phase_frame, text="0°")
         self.label_phase.pack(pady=(8, 4))
 
         # --- RIGHT FADER ---
         right_frame = ttk.Frame(faders_frame)
-        right_frame.pack(side="left", expand=True, fill="y", padx=10)
+        right_frame.pack(side="left", expand=True, fill="both", padx=10)
         ttk.Label(right_frame, text="Rechts (Hz)").pack(pady=(0, 8))
         self.freq_right = tk.IntVar(value=440)
-        self.slider_right = ttk.Scale(right_frame, from_=2000, to=100, variable=self.freq_right, orient="vertical", command=self.update_right, length=180)
-        self.slider_right.pack()
+        self.slider_right = ttk.Scale(right_frame, from_=2000, to=100, variable=self.freq_right, orient="vertical", command=self.update_right)
+        self.slider_right.pack(expand=True, fill="y")
         self.label_right = ttk.Label(right_frame, text="440 Hz")
         self.label_right.pack(pady=(8, 4))
-
-        # Mute button with icon
         self.mute_right = tk.BooleanVar(value=False)
         self.btn_mute_right = ttk.Button(
             right_frame,
