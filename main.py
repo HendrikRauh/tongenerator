@@ -116,7 +116,7 @@ class App(tk.Tk):
         left_frame.pack(side="left", expand=True, fill="both", padx=10)
         ttk.Label(left_frame, text="Links (Hz)").pack(pady=(0, 8))
         self.freq_left = tk.IntVar(value=440)
-        self.slider_left = ttk.Scale(left_frame, from_=2000, to=100, variable=self.freq_left, orient="vertical", command=self.update_left)
+        self.slider_left = ttk.Scale(left_frame, from_=15000, to=20, variable=self.freq_left, orient="vertical", command=self.update_left)
         self.slider_left.pack(expand=True, fill="y")
         vcmd = (self.register(self.validate_numeric), "%P")
         self.entry_left = ttk.Entry(left_frame, width=6, justify="center", validate="key", validatecommand=vcmd)
@@ -154,7 +154,7 @@ class App(tk.Tk):
         right_frame.pack(side="left", expand=True, fill="both", padx=10)
         ttk.Label(right_frame, text="Rechts (Hz)").pack(pady=(0, 8))
         self.freq_right = tk.IntVar(value=440)
-        self.slider_right = ttk.Scale(right_frame, from_=2000, to=100, variable=self.freq_right, orient="vertical", command=self.update_right)
+        self.slider_right = ttk.Scale(right_frame, from_=15000, to=20, variable=self.freq_right, orient="vertical", command=self.update_right)
         self.slider_right.pack(expand=True, fill="y")
         vcmd = (self.register(self.validate_numeric), "%P")
         self.entry_right = ttk.Entry(right_frame, width=6, justify="center", validate="key", validatecommand=vcmd)
@@ -191,7 +191,7 @@ class App(tk.Tk):
     def set_left_from_entry(self, event=None):
         try:
             freq = int(self.entry_left.get())
-            freq = max(100, min(2000, freq))
+            freq = max(20, min(15000, freq))
             self.freq_left.set(freq)
             self.update_left()
         except ValueError:
@@ -207,7 +207,7 @@ class App(tk.Tk):
     def set_right_from_entry(self, event=None):
         try:
             freq = int(self.entry_right.get())
-            freq = max(100, min(2000, freq))
+            freq = max(20, min(15000, freq))
             self.freq_right.set(freq)
             self.update_right()
         except ValueError:
