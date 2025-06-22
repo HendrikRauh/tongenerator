@@ -17,6 +17,8 @@ class ToneGenerator:
         self.lock = threading.Lock()
         self.phase_left = 0.0
         self.phase_right = 0.0
+        self.mute_left = False
+        self.mute_right = False
 
     def start(self):
         if not self.running:
@@ -50,12 +52,22 @@ class ToneGenerator:
         with self.lock:
             self.phase_diff = diff
 
+    def set_mute_left(self, mute):
+        with self.lock:
+            self.mute_left = mute
+
+    def set_mute_right(self, mute):
+        with self.lock:
+            self.mute_right = mute
+
     def callback(self, outdata, frames, time, status):
         t = np.arange(frames) / SAMPLE_RATE
         with self.lock:
             freq_left = self.freq_left
             freq_right = self.freq_right
             phase_diff = self.phase_diff
+            mute_left = self.mute_left
+            mute_right = self.mute_right
 
         # Phasen in Radiant
         phase_offset = 2 * np.pi * phase_diff / 360
@@ -63,6 +75,12 @@ class ToneGenerator:
         # Fortlaufende Phase berechnen
         left = np.sin(2 * np.pi * freq_left * t + self.phase_left)
         right = np.sin(2 * np.pi * freq_right * t + self.phase_right + phase_offset)
+
+        if mute_left:
+            left = np.zeros_like(left)
+        if mute_right:
+            right = np.zeros_like(right)
+
         outdata[:, 0] = left.astype(np.float32)
         outdata[:, 1] = right.astype(np.float32)
 
@@ -105,6 +123,16 @@ class App(tk.Tk):
         self.label_phase = ttk.Label(self, text="0°")
         self.label_phase.pack()
 
+        # Mute Checkbuttons
+        mute_frame = ttk.Frame(self)
+        mute_frame.pack(fill="x", padx=20, pady=(10,0))
+        self.mute_left = tk.BooleanVar(value=False)
+        self.mute_right = tk.BooleanVar(value=False)
+        self.chk_mute_left = ttk.Checkbutton(mute_frame, text="Links stumm", variable=self.mute_left, command=self.update_mute_left)
+        self.chk_mute_left.pack(side="left", expand=True, fill="x")
+        self.chk_mute_right = ttk.Checkbutton(mute_frame, text="Rechts stumm", variable=self.mute_right, command=self.update_mute_right)
+        self.chk_mute_right.pack(side="right", expand=True, fill="x")
+
         # Start/Stop Buttons in eigenen Frame
         button_frame = ttk.Frame(self)
         button_frame.pack(fill="x", padx=20, pady=20)
@@ -139,6 +167,12 @@ class App(tk.Tk):
 
     def stop(self):
         self.generator.stop()
+
+    def update_mute_left(self):
+        self.generator.set_mute_left(self.mute_left.get())
+
+    def update_mute_right(self):
+        self.generator.set_mute_right(self.mute_right.get())
 
     def on_close(self):
         self.stop()
