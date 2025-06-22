@@ -94,49 +94,84 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Interferenz-Experiment")
-        self.geometry("400x320")
+        self.geometry("520x380")
         self.resizable(False, False)
+
+        # --- DARK MODE STYLING ---
+        self.configure(bg="#232629")
+        style = ttk.Style(self)
+        style.theme_use("clam")
+        style.configure(".", background="#232629", foreground="#f8f8f2", fieldbackground="#232629")
+        style.configure("TLabel", background="#232629", foreground="#f8f8f2")
+        style.configure("TButton", background="#44475a", foreground="#f8f8f2")
+        style.configure("TCheckbutton", background="#232629", foreground="#f8f8f2")
+        style.configure("Horizontal.TScale", background="#232629")
+        style.configure("Vertical.TScale", background="#232629")
+        style.map("TButton", background=[("active", "#6272a4")])
 
         self.generator = ToneGenerator()
 
-        # Frequenz links
-        ttk.Label(self, text="Frequenz links (Hz)").pack(pady=(10,0))
+        # --- MAIN LAYOUT FRAME ---
+        main_frame = ttk.Frame(self, style="TFrame")
+        main_frame.pack(expand=True, fill="both", padx=20, pady=20)
+
+        # --- FADERS FRAME ---
+        faders_frame = ttk.Frame(main_frame)
+        faders_frame.pack(side="top", fill="x", expand=True)
+
+        # --- LEFT FADER ---
+        left_frame = ttk.Frame(faders_frame)
+        left_frame.pack(side="left", expand=True, fill="y", padx=10)
+        ttk.Label(left_frame, text="Links (Hz)").pack(pady=(0, 8))
         self.freq_left = tk.IntVar(value=440)
-        self.slider_left = ttk.Scale(self, from_=100, to=2000, variable=self.freq_left, orient="horizontal", command=self.update_left)
-        self.slider_left.pack(fill="x", padx=20)
-        self.label_left = ttk.Label(self, text="440 Hz")
-        self.label_left.pack()
+        self.slider_left = ttk.Scale(left_frame, from_=2000, to=100, variable=self.freq_left, orient="vertical", command=self.update_left, length=180)
+        self.slider_left.pack()
+        self.label_left = ttk.Label(left_frame, text="440 Hz")
+        self.label_left.pack(pady=(8, 4))
 
-        # Frequenz rechts
-        ttk.Label(self, text="Frequenz rechts (Hz)").pack(pady=(10,0))
-        self.freq_right = tk.IntVar(value=440)
-        self.slider_right = ttk.Scale(self, from_=100, to=2000, variable=self.freq_right, orient="horizontal", command=self.update_right)
-        self.slider_right.pack(fill="x", padx=20)
-        self.label_right = ttk.Label(self, text="440 Hz")
-        self.label_right.pack()
-
-        # Gangunterschied
-        ttk.Label(self, text="Gangunterschied (°)").pack(pady=(10,0))
-        self.phase_diff = tk.IntVar(value=0)
-        self.slider_phase = ttk.Scale(self, from_=0, to=360, variable=self.phase_diff, orient="horizontal", command=self.update_phase)
-        self.slider_phase.pack(fill="x", padx=20)
-        self.label_phase = ttk.Label(self, text="0°")
-        self.label_phase.pack()
-
-        # Mute Checkbuttons
-        mute_frame = ttk.Frame(self)
-        mute_frame.pack(fill="x", padx=20, pady=(10,0))
+        # Mute button with icon
         self.mute_left = tk.BooleanVar(value=False)
+        self.btn_mute_left = ttk.Button(
+            left_frame,
+            text="🔈",
+            width=3,
+            command=self.toggle_mute_left
+        )
+        self.btn_mute_left.pack(pady=(8, 0))
+
+        # --- PHASE FADER ---
+        phase_frame = ttk.Frame(faders_frame)
+        phase_frame.pack(side="left", expand=True, fill="y", padx=10)
+        ttk.Label(phase_frame, text="Phase (°)").pack(pady=(0, 8))
+        self.phase_diff = tk.IntVar(value=0)
+        self.slider_phase = ttk.Scale(phase_frame, from_=360, to=0, variable=self.phase_diff, orient="vertical", command=self.update_phase, length=180)
+        self.slider_phase.pack()
+        self.label_phase = ttk.Label(phase_frame, text="0°")
+        self.label_phase.pack(pady=(8, 4))
+
+        # --- RIGHT FADER ---
+        right_frame = ttk.Frame(faders_frame)
+        right_frame.pack(side="left", expand=True, fill="y", padx=10)
+        ttk.Label(right_frame, text="Rechts (Hz)").pack(pady=(0, 8))
+        self.freq_right = tk.IntVar(value=440)
+        self.slider_right = ttk.Scale(right_frame, from_=2000, to=100, variable=self.freq_right, orient="vertical", command=self.update_right, length=180)
+        self.slider_right.pack()
+        self.label_right = ttk.Label(right_frame, text="440 Hz")
+        self.label_right.pack(pady=(8, 4))
+
+        # Mute button with icon
         self.mute_right = tk.BooleanVar(value=False)
-        self.chk_mute_left = ttk.Checkbutton(mute_frame, text="Links stumm", variable=self.mute_left, command=self.update_mute_left)
-        self.chk_mute_left.pack(side="left", expand=True, fill="x")
-        self.chk_mute_right = ttk.Checkbutton(mute_frame, text="Rechts stumm", variable=self.mute_right, command=self.update_mute_right)
-        self.chk_mute_right.pack(side="right", expand=True, fill="x")
+        self.btn_mute_right = ttk.Button(
+            right_frame,
+            text="🔈",
+            width=3,
+            command=self.toggle_mute_right
+        )
+        self.btn_mute_right.pack(pady=(8, 0))
 
-        # Start/Stop Buttons in eigenen Frame
-        button_frame = ttk.Frame(self)
-        button_frame.pack(fill="x", padx=20, pady=20)
-
+        # --- BUTTONS FRAME ---
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(side="bottom", fill="x", pady=(20, 0))
         self.btn_start = ttk.Button(button_frame, text="Start", command=self.start)
         self.btn_start.pack(side="left", expand=True, fill="x", padx=(0, 10))
         self.btn_stop = ttk.Button(button_frame, text="Stop", command=self.stop)
@@ -168,11 +203,17 @@ class App(tk.Tk):
     def stop(self):
         self.generator.stop()
 
-    def update_mute_left(self):
-        self.generator.set_mute_left(self.mute_left.get())
+    def toggle_mute_left(self):
+        current = self.mute_left.get()
+        self.mute_left.set(not current)
+        self.generator.set_mute_left(not current)
+        self.btn_mute_left.config(text="🔇" if not current else "🔈")
 
-    def update_mute_right(self):
-        self.generator.set_mute_right(self.mute_right.get())
+    def toggle_mute_right(self):
+        current = self.mute_right.get()
+        self.mute_right.set(not current)
+        self.generator.set_mute_right(not current)
+        self.btn_mute_right.config(text="🔇" if not current else "🔈")
 
     def on_close(self):
         self.stop()
