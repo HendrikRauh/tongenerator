@@ -76,7 +76,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Interferenz-Experiment")
-        self.geometry("400x300")
+        self.geometry("400x320")
         self.resizable(False, False)
 
         self.generator = ToneGenerator()
