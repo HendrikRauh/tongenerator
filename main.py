@@ -175,10 +175,8 @@ class App(tk.Tk):
 
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(side="bottom", fill="x", pady=(20, 0))
-        self.btn_start = ttk.Button(button_frame, text="Start", command=self.start)
-        self.btn_start.pack(side="left", expand=True, fill="x", padx=(0, 10))
-        self.btn_stop = ttk.Button(button_frame, text="Stop", command=self.stop)
-        self.btn_stop.pack(side="right", expand=True, fill="x", padx=(10, 0))
+        self.btn_toggle = ttk.Button(button_frame, text="Experiment starten", command=self.toggle_experiment)
+        self.btn_toggle.pack(expand=True, fill="x")
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
@@ -230,14 +228,16 @@ class App(tk.Tk):
             pass
         self.select_all(self.entry_phase)  # Reselect text
 
-    def start(self):
-        self.generator.set_freq_left(self.freq_left.get())
-        self.generator.set_freq_right(self.freq_right.get())
-        self.generator.set_phase_diff(self.phase_diff.get())
-        self.generator.start()
-
-    def stop(self):
-        self.generator.stop()
+    def toggle_experiment(self):
+        if self.generator.running:
+            self.generator.stop()
+            self.btn_toggle.config(text="Experiment starten")
+        else:
+            self.generator.set_freq_left(self.freq_left.get())
+            self.generator.set_freq_right(self.freq_right.get())
+            self.generator.set_phase_diff(self.phase_diff.get())
+            self.generator.start()
+            self.btn_toggle.config(text="Experiment pausieren")
 
     def toggle_mute_left(self):
         current = self.mute_left.get()
@@ -252,7 +252,7 @@ class App(tk.Tk):
         self.btn_mute_right.config(text="🔇" if not current else "🔈")
 
     def on_close(self):
-        self.stop()
+        self.generator.stop()
         self.destroy()
 
     def select_all(self, entry):
